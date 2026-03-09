@@ -3,12 +3,25 @@ name: Build
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
     branches: [main]
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            name: amd64
+          - arch: aarch64
+            name: arm64
     steps:
       - uses: actions/checkout@v4
 
@@ -16,56 +29,86 @@ jobs:
         with:
           version: 0.15.2
 
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build
-        run: zig build
+        run: zig build -Darch=${{ matrix.arch }} -Dversion=${{ steps.version.outputs.version }}
 
       - name: Check binary
         run: |
           file zig-out/bin/vgi-injector
           ls -lh zig-out/bin/vgi-injector
 
+      - name: Rename binary
+        run: mv zig-out/bin/vgi-injector vgi-injector-linux-${{ matrix.name }}
+
+      - name: Compress with UPX
+        if: matrix.name == 'amd64'
+        run: |
+          sudo apt-get install -y upx
+          cp vgi-injector-linux-${{ matrix.name }} vgi-injector-linux-${{ matrix.name }}-upx
+          upx --best vgi-injector-linux-${{ matrix.name }}-upx
+          ls -lh vgi-injector-linux-*
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: vgi-injector
-          path: zig-out/bin/vgi-injector
+          name: vgi-injector-linux-${{ matrix.name }}
+          path: vgi-injector-linux-${{ matrix.name }}*
 
   publish:
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
         with:
-          name: vgi-injector
+          merge-multiple: true
 
-      - name: Install UPX
-        run: sudo apt-get install -y upx
+      - name: List binaries
+        run: ls -lh vgi-injector-*
 
-      - name: Compress with UPX
-        run: |
-          chmod +x vgi-injector
-          cp vgi-injector vgi-injector-upx
-          upx --best vgi-injector-upx
-          ls -lh vgi-injector vgi-injector-upx
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: vgi-injector-upx
-          path: vgi-injector-upx
-
-      - name: Publish to R2
+      - name: Upload to R2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
         run: |
-          aws s3 cp vgi-injector s3://vgi-injector-binaries/vgi-injector \
-            --endpoint-url "$R2_ENDPOINT" \
-            --content-type application/octet-stream \
-            --cache-control "public, max-age=86400"
-          aws s3 cp vgi-injector-upx s3://vgi-injector-binaries/vgi-injector-upx \
-            --endpoint-url "$R2_ENDPOINT" \
-            --content-type application/octet-stream \
-            --cache-control "public, max-age=86400"
+          for f in vgi-injector-*; do
+            aws s3 cp "$f" "s3://vgi-injector-binaries/$f" \
+              --endpoint-url "$R2_ENDPOINT" \
+              --content-type application/octet-stream \
+              --cache-control "public, max-age=86400"
+          done
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: List binaries
+        run: ls -lh vgi-injector-*
+
+      - name: Generate attestations
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: 'vgi-injector-*'
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: vgi-injector-*

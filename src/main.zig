@@ -3,6 +3,7 @@ const posix = std.posix;
 const http = std.http;
 const crypto = std.crypto;
 
+const build_options = @import("build_options");
 const ca_pem = @embedFile("ca-certificates.crt");
 
 fn log(msg: []const u8) void {
@@ -17,7 +18,9 @@ fn run() !void {
     const allocator = std.heap.page_allocator;
 
     log("VGI-Injector: Copyright 2026 Query.Farm LLC https://query.farm - All Rights Reserved.\n");
-    log("VGI-Injector: starting\n");
+    log("VGI-Injector: version ");
+    log(build_options.version);
+    log("\n");
 
     const url_str = posix.getenv("VGI_INJECTOR_URL") orelse {
         log("error: VGI_INJECTOR_URL environment variable is not set\n");
@@ -72,7 +75,15 @@ fn run() !void {
         posix.exit(1);
     };
 
-    log("VGI-Injector: download complete, writing to memfd\n");
+    if (body.len == 0) {
+        log("error: downloaded binary is empty\n");
+        posix.exit(1);
+    }
+
+    var size_buf: [20]u8 = undefined;
+    log("VGI-Injector: download complete, ");
+    log(std.fmt.bufPrint(&size_buf, "{d}", .{body.len}) catch "?");
+    log(" bytes, writing to memfd\n");
 
     // Create memfd, write binary, exec from /proc/self/fd/N
     const memfd = posix.memfd_createZ("vgi", 0) catch {

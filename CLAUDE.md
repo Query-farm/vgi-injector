@@ -18,19 +18,25 @@ Single Zig binary with everything built-in:
 
 ## Build
 
-Requires Zig 0.15.x. Cross-compiles to Linux amd64 from any platform.
+Requires Zig 0.15.x. Cross-compiles to Linux from any platform.
 
 ```bash
+# amd64 (default)
 zig build
-# Output: zig-out/bin/vgi-injector (736 KB)
+# or explicitly:
+zig build -Darch=x86_64
 
-# UPX compress for deployment:
+# arm64
+zig build -Darch=aarch64
+
+# Output: zig-out/bin/vgi-injector
+
+# UPX compress for deployment (amd64 only):
 cp zig-out/bin/vgi-injector injector-zig-upx
 upx --best injector-zig-upx
-# Output: injector-zig-upx (354 KB)
 ```
 
-Target: `x86_64-linux-none` (freestanding, no libc ABI).
+Target: `linux-none` (freestanding, no libc ABI).
 
 ## Deploy to Fly.io
 
@@ -42,7 +48,17 @@ fly deploy
 
 ## CI
 
-GitHub Actions builds on push to `main` and on PRs. The `build` job compiles and uploads the binary as an artifact. The `release` job (main only) also produces a UPX-compressed artifact.
+GitHub Actions builds on push to `main`, PRs, and tags. Matrix builds for both amd64 and arm64.
+
+- **push to main / PR** — build + upload artifacts
+- **push to main** — also publish to R2
+- **tag `v*`** — publish to R2, create GitHub release with attestations
+
+To create a release:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
 
 ## Project Structure
 
