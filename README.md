@@ -12,7 +12,13 @@
 
 Downloads a binary via HTTPS and exec's it using memfd — no filesystem writes needed. Designed for `FROM scratch` containers with zero runtime dependencies.
 
-Built in [Zig](https://ziglang.org/) with everything self-contained: DNS resolver, TLS, and embedded CA certificates.
+## Why Zig?
+
+The goal is the smallest possible self-contained binary with HTTPS support. Go and Rust were both evaluated:
+
+- **Go** — ~4.5 MB stripped. The Go 1.24+ runtime includes a mandatory FIPS 140-3 module (~1.5 MB) that cannot be removed, and the HTTP/TLS stdlib sets a high floor.
+- **Rust** — ~1.2 MB stripped with `rustls` + LTO + `opt-level = "z"`. Better, but still large.
+- **Zig** — ~460 KB stripped, ~220 KB with UPX. Zig's stdlib includes TLS and HTTP without external dependencies, and the binary targets `linux-none` (freestanding, no libc).
 
 **Key features:**
 
