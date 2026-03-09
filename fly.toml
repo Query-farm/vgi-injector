@@ -1,0 +1,20 @@
+app = "vgi-injector-test"
+primary_region = "ord"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  VGI_INJECTOR_URL = "https://vgi-injector.query-farm.services/test-binary"
+  VGI_INJECTOR_DNS = "fdaa::3"
+
+[[files]]
+  guest_path = "/injector"
+  local_path = "injector-zig-upx"
+
+[processes]
+  app = "/injector"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
