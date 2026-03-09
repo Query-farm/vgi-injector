@@ -6,7 +6,7 @@ Minimal download-and-execute binary for Linux amd64. Downloads a binary via HTTP
 
 Single Zig binary with everything built-in:
 - **Built-in DNS resolver** — raw UDP queries, supports IPv4 and IPv6 DNS servers (e.g. Fly's `fdaa::3`)
-- **Embedded CA certificates** — full Mozilla CA bundle at `src/ca-certificates.crt`
+- **Embedded CA certificates** — full Mozilla CA bundle at `src/ca-certificates.crt` (downloaded at build time, not in source control)
 - **TLS via Zig stdlib** — no OpenSSL/libc dependency
 - **memfd exec** — writes downloaded binary to memfd, exec's from `/proc/self/fd/N`, no filesystem needed
 - **DNS and download retries** — exponential backoff, 3 attempts each
@@ -52,7 +52,7 @@ GitHub Actions builds on push to `main`, PRs, and tags. Matrix builds for both a
 
 - **push to main / PR** — build + upload artifacts
 - **push to main** — also publish to R2
-- **tag `v*`** — publish to R2, create GitHub release with attestations
+- **tag `v*`** — publish to R2, create GitHub release
 
 To create a release:
 ```bash
@@ -64,7 +64,8 @@ git push origin v1.0.0
 
 ```
 src/main.zig              — all logic in one file
-src/ca-certificates.crt   — embedded CA bundle (copied from /etc/ssl/cert.pem)
+src/ca-certificates.crt   — embedded CA bundle (downloaded by update-ca-bundle.sh, not in git)
+update-ca-bundle.sh       — downloads Mozilla CA bundle if missing or >7 days old
 build.zig                 — build config (x86_64-linux-none, ReleaseSmall, stripped)
 test-binary/              — test binary deployed to R2 (prints heartbeat to stderr)
 fly.toml                  — Fly.io deployment config

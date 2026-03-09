@@ -36,6 +36,9 @@ jobs:
             echo "version=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Update CA bundle
+        run: ./update-ca-bundle.sh
+
       - name: Build
         run: zig build -Darch=${{ matrix.arch }} -Dversion=${{ steps.version.outputs.version }}
 

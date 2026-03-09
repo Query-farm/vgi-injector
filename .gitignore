@@ -4,3 +4,4 @@ injector-zig-upx
 .wrangler/
 test-binary/.wrangler/
 test-binary/main
+src/ca-certificates.crt
