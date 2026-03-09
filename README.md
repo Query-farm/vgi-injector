@@ -1,10 +1,20 @@
-# VGI Injector
+<h1 align="center">VGI Injector</h1>
 
-Minimal download-and-execute binary for Linux. Downloads a binary via HTTPS and exec's it using memfd — no filesystem writes needed. Designed for `FROM scratch` containers with zero runtime dependencies.
+<p align="center">
+  Minimal download-and-execute binary for Linux.<br>
+  Built by <a href="https://query.farm">🚜 Query.Farm</a>
+</p>
 
-Built in Zig with everything self-contained: DNS resolver, TLS, and embedded CA certificates.
+<p align="center">
+  <a href="https://github.com/Query-farm/vgi-injector/actions/workflows/build.yml"><img src="https://github.com/Query-farm/vgi-injector/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <a href="https://github.com/Query-farm/vgi-injector/blob/main/LICENSE.md"><img src="https://img.shields.io/badge/license-Apache%202.0-blue" alt="License"></a>
+</p>
 
-## Features
+Downloads a binary via HTTPS and exec's it using memfd — no filesystem writes needed. Designed for `FROM scratch` containers with zero runtime dependencies.
+
+Built in [Zig](https://ziglang.org/) with everything self-contained: DNS resolver, TLS, and embedded CA certificates.
+
+**Key features:**
 
 - **Zero dependencies** — statically linked, no libc, runs in `FROM scratch` containers
 - **Built-in DNS resolver** — raw UDP queries with retry and exponential backoff, supports IPv4 and IPv6 DNS servers (e.g. Fly.io's `fdaa::3`)
@@ -64,7 +74,7 @@ See `fly.toml` for the deployment configuration.
 GitHub Actions builds on push to `main`, PRs, and version tags. Matrix builds for amd64 and arm64.
 
 - **Push to main / PR** — build and upload artifacts
-- **Push to main** — also publish to Cloudflare R2
+- **Push to main** — also publish to [Cloudflare R2](https://developers.cloudflare.com/r2/)
 - **Tag `v*`** — publish to R2 and create GitHub Release
 
 To create a release:
@@ -87,4 +97,6 @@ The bundle is sourced from [curl.se/ca/cacert.pem](https://curl.se/ca/cacert.pem
 
 ## License
 
-Copyright 2026 Query.Farm LLC — All Rights Reserved.
+Copyright 2026 [Query.Farm LLC](https://query.farm)
+
+Licensed under the Apache License, Version 2.0. See [LICENSE.md](LICENSE.md) for details.

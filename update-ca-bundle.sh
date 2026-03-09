@@ -1,4 +1,7 @@
 #!/bin/sh
+# Copyright 2026 Query.Farm LLC
+# Licensed under the Apache License, Version 2.0
+#
 # Downloads the Mozilla CA certificate bundle if missing or older than 7 days.
 # Source: curl's maintained extraction of Mozilla's CA bundle.
 
