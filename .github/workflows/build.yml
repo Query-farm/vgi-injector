@@ -13,6 +13,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     strategy:
       matrix:
         include:
@@ -82,12 +84,21 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          VERSION: ${{ needs.build.outputs.version }}
         run: |
           for f in vgi-injector-*; do
-            aws s3 cp "$f" "s3://vgi-injector-binaries/$f" \
+            # Include version in the R2 key: vgi-injector-linux-amd64 -> v0.2.0/vgi-injector-linux-amd64
+            aws s3 cp "$f" "s3://vgi-injector-binaries/${VERSION}/$f" \
               --endpoint-url "$R2_ENDPOINT" \
               --content-type application/octet-stream \
               --cache-control "public, max-age=86400"
+          done
+          # Also publish as "latest"
+          for f in vgi-injector-*; do
+            aws s3 cp "$f" "s3://vgi-injector-binaries/latest/$f" \
+              --endpoint-url "$R2_ENDPOINT" \
+              --content-type application/octet-stream \
+              --cache-control "public, max-age=300"
           done
 
   release:
