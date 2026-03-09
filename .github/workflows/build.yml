@@ -87,15 +87,14 @@ jobs:
           VERSION: ${{ needs.build.outputs.version }}
         run: |
           for f in vgi-injector-*; do
-            # Include version in the R2 key: vgi-injector-linux-amd64 -> v0.2.0/vgi-injector-linux-amd64
-            aws s3 cp "$f" "s3://vgi-injector-binaries/${VERSION}/$f" \
+            aws s3 cp "$f" "s3://vgi-injector-binaries/injector/${VERSION}/$f" \
               --endpoint-url "$R2_ENDPOINT" \
               --content-type application/octet-stream \
               --cache-control "public, max-age=86400"
           done
           # Also publish as "latest"
           for f in vgi-injector-*; do
-            aws s3 cp "$f" "s3://vgi-injector-binaries/latest/$f" \
+            aws s3 cp "$f" "s3://vgi-injector-binaries/injector/latest/$f" \
               --endpoint-url "$R2_ENDPOINT" \
               --content-type application/octet-stream \
               --cache-control "public, max-age=300"
