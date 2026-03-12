@@ -31,8 +31,8 @@ pub fn main() void {
 fn run() !void {
     const allocator = std.heap.page_allocator;
 
-    log("VGI-Injector: Copyright 2026 Query.Farm LLC — https://query.farm\n");
-    log("VGI-Injector: version ");
+    log("vgi-injector: Copyright 2026 Query.Farm LLC — https://query.farm\n");
+    log("vgi-injector: version ");
     log(build_options.version);
     log("\n");
 
@@ -41,7 +41,7 @@ fn run() !void {
         posix.exit(1);
     };
 
-    log("VGI-Injector: url=");
+    log("vgi-injector: url=");
     log(url_str);
     log("\n");
 
@@ -58,7 +58,7 @@ fn run() !void {
 
     const dns_server_str = posix.getenv("VGI_INJECTOR_DNS") orelse "1.1.1.1";
 
-    log("VGI-Injector: resolving ");
+    log("vgi-injector: resolving ");
     log(hostname);
     log(" via ");
     log(dns_server_str);
@@ -79,7 +79,7 @@ fn run() !void {
     };
     var ip_buf: [46]u8 = undefined;
     const ip_str = ipToString(resolved_ip, &ip_buf);
-    log("VGI-Injector: resolved to ");
+    log("vgi-injector: resolved to ");
     log(ip_str);
     log("\n");
 
@@ -95,7 +95,7 @@ fn run() !void {
     }
 
     var size_buf: [20]u8 = undefined;
-    log("VGI-Injector: download complete, ");
+    log("vgi-injector: download complete, ");
     log(std.fmt.bufPrint(&size_buf, "{d}", .{body.len}) catch "?");
     log(" bytes, writing to memfd\n");
 
@@ -118,7 +118,7 @@ fn run() !void {
         posix.exit(1);
     };
 
-    log("VGI-Injector: exec'ing from memfd\n");
+    log("vgi-injector: exec'ing from memfd\n");
 
     var argv_buf: [256:null]?[*:0]const u8 = @splat(null);
     var argc: usize = 0;
@@ -147,7 +147,7 @@ fn downloadWithRetry(allocator: std.mem.Allocator, uri: std.Uri, hostname: []con
             var buf2: [4]u8 = undefined;
             const n = std.fmt.bufPrint(&buf1, "{d}", .{attempt + 1}) catch "?";
             const m = std.fmt.bufPrint(&buf2, "{d}", .{max_attempts}) catch "?";
-            log("VGI-Injector: retry ");
+            log("vgi-injector: retry ");
             log(n);
             log("/");
             log(m);
@@ -158,7 +158,7 @@ fn downloadWithRetry(allocator: std.mem.Allocator, uri: std.Uri, hostname: []con
         }
 
         const result = doFetch(allocator, uri, hostname, ip_str, port) catch |err| {
-            log("VGI-Injector: fetch error: ");
+            log("vgi-injector: fetch error: ");
             log(@errorName(err));
             log("\n");
             continue;
@@ -178,7 +178,7 @@ fn doFetch(allocator: std.mem.Allocator, uri: std.Uri, hostname: []const u8, ip_
     client.next_https_rescan_certs = false;
 
     // Connect to the resolved IP, but use hostname for TLS SNI
-    log("VGI-Injector: connecting to ");
+    log("vgi-injector: connecting to ");
     log(ip_str);
     log(":");
     var port_buf: [6]u8 = undefined;
@@ -375,7 +375,7 @@ fn dnsResolveWithRetry(hostname: []const u8, dns_addr: DnsAddr, max_attempts: u3
             var buf2: [4]u8 = undefined;
             const n = std.fmt.bufPrint(&buf1, "{d}", .{attempt + 1}) catch "?";
             const m = std.fmt.bufPrint(&buf2, "{d}", .{max_attempts}) catch "?";
-            log("VGI-Injector: dns retry ");
+            log("vgi-injector: dns retry ");
             log(n);
             log("/");
             log(m);
@@ -384,7 +384,7 @@ fn dnsResolveWithRetry(hostname: []const u8, dns_addr: DnsAddr, max_attempts: u3
             std.Thread.sleep(backoff_ns * std.time.ns_per_s);
         }
         const result = dnsResolve(hostname, dns_addr) catch |err| {
-            log("VGI-Injector: dns error: ");
+            log("vgi-injector: dns error: ");
             log(@errorName(err));
             log("\n");
             continue;
